@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.minerender.extractor.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+  ],
+  "client": [
+    "ExampleMixin",
+    "BlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

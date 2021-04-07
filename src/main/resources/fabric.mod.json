@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "minerender-extractor",
+  "version": "${version}",
+
+  "name": "MineRender Extractor Mod",
+  "description": "",
+  "authors": [
+    "inventivetalent"
+  ],
+  "contact": {
+  },
+
+  "license": "MIT",
+  "icon": "assets/modid/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "org.minerender.extractor.ExampleMod"
+    ]
+  },
+  "mixins": [
+    "modid.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
