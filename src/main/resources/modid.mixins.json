@@ -7,7 +7,9 @@
   ],
   "client": [
     "ExampleMixin",
-    "BlockMixin"
+    "BlockMixin",
+    "renderer.blockentity.BlockEntityRenderDispatcherMixin",
+    "model.geom.ModelPartMixin"
   ],
   "injectors": {
     "defaultRequire": 1
