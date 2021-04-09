@@ -8,8 +8,11 @@
   "client": [
     "ExampleMixin",
     "BlockMixin",
+    "ClientWorldMixin",
     "renderer.blockentity.BlockEntityRenderDispatcherMixin",
-    "model.geom.ModelPartMixin"
+    "model.geom.ModelPartMixin",
+    "particle.ParticleManagerMixin",
+    "particle.ParticleManagerMixin$SimpleSpriteProviderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

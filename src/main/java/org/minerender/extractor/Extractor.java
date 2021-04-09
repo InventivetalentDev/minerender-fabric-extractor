@@ -1,10 +1,13 @@
 package org.minerender.extractor;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
@@ -15,23 +18,49 @@ import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.registry.Registry;
 import org.minerender.extractor.mixin.model.geom.ModelPartMixin;
+import org.minerender.extractor.mixin.particle.ParticleManagerMixin;
 import org.minerender.extractor.mixin.renderer.blockentity.BlockEntityRenderDispatcherMixin;
 
+import java.awt.*;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Extractor {
 
     protected static List<Field> collectAllInheritedFields(Class clazz) {
         List<Field> fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
         while ((clazz = clazz.getSuperclass()) != null) {
-            if(Object.class.equals(clazz)) break;
+            if (Object.class.equals(clazz)) { break; }
             fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         }
         return fields;
     }
 
+    protected static JsonElement blockStateValueToJson(Comparable<?> comparable) {
+        if (comparable instanceof Boolean) {
+            return new JsonPrimitive((Boolean) comparable);
+        }
+        if (comparable instanceof Number) {
+            return new JsonPrimitive((Number) comparable);
+        }
+        return new JsonPrimitive(comparable.toString());
+    }
+
+    protected static JsonObject minecraftColorToJson(int color) {
+        JsonObject json = new JsonObject();
+        Color clr = new Color(color, true);
+        json.addProperty("r", clr.getRed());
+        json.addProperty("g", clr.getGreen());
+        json.addProperty("b", clr.getBlue());
+        json.addProperty("a", clr.getAlpha());
+        return json;
+    }
+
     public static void extractDefaultBlockStates() {
+        System.out.println("Extracting default block states...");
+
         for (Block block : Registry.BLOCK) {
             JsonObject state = new JsonObject();
             BlockState blockState = block.getDefaultState();
@@ -70,6 +99,8 @@ public class Extractor {
     }
 
     public static void extractBlockEntityModels() {
+        System.out.println("Extracting block entity models...");
+
         Map<BlockEntityType<?>, BlockEntityRenderer<?>> renderers = ((BlockEntityRenderDispatcherMixin) BlockEntityRenderDispatcher.INSTANCE).getRenderers();
         System.out.println(renderers);
         renderers.forEach((type, renderer) -> {
@@ -77,7 +108,7 @@ public class Extractor {
 
             extractAllModelsFromClass(renderer, parts);
 
-            Output.append("blockModels",  Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(type)).toString(), parts);
+            Output.append("blockModels", Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(type)).toString(), parts);
         });
 
         Output.write("blockModels");
@@ -106,6 +137,8 @@ public class Extractor {
     }
 
     public static void extractEntityModels() {
+        System.out.println("Extracting entity models...");
+
         //TODO
         Map<BlockEntityType<?>, BlockEntityRenderer<?>> renderers = ((BlockEntityRenderDispatcherMixin) BlockEntityRenderDispatcher.INSTANCE).getRenderers();
         System.out.println(renderers);
@@ -167,6 +200,90 @@ public class Extractor {
         root.add("children", childArray);
 
         return root;
+    }
+
+    public static void extractParticles() {
+        System.out.println("Extracting particles...");
+
+        JsonArray particles = new JsonArray();
+
+        ParticleManagerMixin particleEngine = ((ParticleManagerMixin) MinecraftClient.getInstance().particleManager);
+        particleEngine.spriteAwareFactories().forEach((identifier, spriteProvider) -> {
+            try {
+                particles.add(identifier.toString());
+                //                    ((ParticleManagerMixin.SimpleSpriteProviderMixin) spriteProvider).sprites().forEach(sprite -> {
+                //                        System.out.println(sprite);
+                //                    });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        Output.write("particles", particles);
+    }
+
+    public static void extractBlockColors() {
+        System.out.println("Extracting block colors...");
+
+        JsonObject json = new JsonObject();
+        for (Block block : Registry.BLOCK) {
+            try {
+                extractBlockColorForBlock(block, json);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        Output.write("blockColors", json);
+    }
+
+    protected static void extractBlockColorForBlock(Block block, JsonObject target) {
+        JsonArray array = new JsonArray();
+
+        //TODO: other states
+
+        BlockState state = block.getDefaultState();
+//        array.add(extractBlockColorForBlockState(state));
+
+        for (Property property : state.getProperties()) {
+            for (Object value : property.getValues()) {
+                try {
+                    if (property instanceof IntProperty) {
+                        array.add(extractBlockColorForBlockState(state.with(property, (Integer) value)));
+                    } else if (property instanceof BooleanProperty) {
+                        array.add(extractBlockColorForBlockState(state.with(property, (Boolean) value)));
+                    } else if(property instanceof EnumProperty) {
+                        array.add(extractBlockColorForBlockState(state.with( property, ((Enum) value))));
+                    }
+//                    else if(value instanceof Enum) {
+//                        array.add(extractBlockColorForBlockState(state.with((Property<Enum>) property, (Enum) value)));
+//                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        target.add(Registry.BLOCK.getId(block).toString(), array);
+    }
+
+    protected static JsonObject extractBlockColorForBlockState(BlockState state) {
+        JsonObject obj = new JsonObject();
+
+        int color = MinecraftClient.getInstance().getBlockColors().getColor(state, null, null);
+
+        JsonObject stateJson = new JsonObject();
+        state.getEntries().forEach(new BiConsumer<Property<?>, Comparable<?>>() {
+            @Override
+            public void accept(Property<?> property, Comparable<?> comparable) {
+                stateJson.add(property.getName(), blockStateValueToJson(comparable));
+            }
+        });
+        obj.add("state", stateJson);
+        //        obj.addProperty("color", color);
+        obj.add("color", minecraftColorToJson(color));
+
+        return obj;
     }
 
     //TODO: entity models?

@@ -1,9 +1,6 @@
 package org.minerender.extractor;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,7 +37,7 @@ public class Output {
         }
     }
 
-    public static void write(String name, JsonObject json) {
+    public static void write(String name, JsonElement json) {
         try {
             File file = new File(name + ".json");
             file.createNewFile();
