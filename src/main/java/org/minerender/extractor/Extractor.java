@@ -12,6 +12,8 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.entity.EntityType;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
@@ -20,6 +22,7 @@ import net.minecraft.util.registry.Registry;
 import org.minerender.extractor.mixin.model.geom.ModelPartMixin;
 import org.minerender.extractor.mixin.particle.ParticleManagerMixin;
 import org.minerender.extractor.mixin.renderer.blockentity.BlockEntityRenderDispatcherMixin;
+import org.minerender.extractor.mixin.renderer.entity.EntityRenderDispatcherMixin;
 
 import java.awt.*;
 import java.lang.reflect.Field;
@@ -51,6 +54,7 @@ public class Extractor {
     protected static JsonObject minecraftColorToJson(int color) {
         JsonObject json = new JsonObject();
         Color clr = new Color(color, true);
+        json.addProperty("raw", color);
         json.addProperty("r", clr.getRed());
         json.addProperty("g", clr.getGreen());
         json.addProperty("b", clr.getBlue());
@@ -108,10 +112,10 @@ public class Extractor {
 
             extractAllModelsFromClass(renderer, parts);
 
-            Output.append("blockModels", Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(type)).toString(), parts);
+            Output.append("blockEntityModels", Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(type)).toString(), parts);
         });
 
-        Output.write("blockModels");
+        Output.write("blockEntityModels");
     }
 
     protected static void extractAllModelsFromClass(Object container, JsonObject parts) {
@@ -139,28 +143,17 @@ public class Extractor {
     public static void extractEntityModels() {
         System.out.println("Extracting entity models...");
 
-        //TODO
-        Map<BlockEntityType<?>, BlockEntityRenderer<?>> renderers = ((BlockEntityRenderDispatcherMixin) BlockEntityRenderDispatcher.INSTANCE).getRenderers();
+        Map<EntityType<?>, EntityRenderer<?>> renderers = ((EntityRenderDispatcherMixin) MinecraftClient.getInstance().getEntityRenderDispatcher()).getRenderers();
         System.out.println(renderers);
         renderers.forEach((type, renderer) -> {
             JsonObject parts = new JsonObject();
 
-            Field[] fields = renderer.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                if (ModelPart.class.equals(field.getType())) {
-                    try {
-                        field.setAccessible(true);
-                        parts.add(field.getName(), extractModelPart((ModelPart) field.get(renderer)));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            extractAllModelsFromClass(renderer, parts);
 
-            Output.append("blockModels", type.toString(), parts);
+            Output.append("entityModels", Objects.requireNonNull(Registry.ENTITY_TYPE.getId(type)).toString(), parts);
         });
 
-        Output.write("blockModels");
+        Output.write("entityModels");
     }
 
     protected static JsonObject extractModelPart(ModelPart modelPart) {

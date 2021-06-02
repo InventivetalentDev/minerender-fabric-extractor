@@ -10,6 +10,7 @@
     "BlockMixin",
     "ClientWorldMixin",
     "renderer.blockentity.BlockEntityRenderDispatcherMixin",
+    "renderer.entity.EntityRenderDispatcherMixin",
     "model.geom.ModelPartMixin",
     "particle.ParticleManagerMixin",
     "particle.ParticleManagerMixin$SimpleSpriteProviderMixin"

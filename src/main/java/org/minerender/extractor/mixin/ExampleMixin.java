@@ -15,7 +15,10 @@ public class ExampleMixin {
 		System.out.println("This line is printed by an example mod mixin!");
 
 		Extractor.extractDefaultBlockStates();
+
 		Extractor.extractBlockEntityModels();
+		Extractor.extractEntityModels();
+
 		Extractor.extractParticles();
 		Extractor.extractBlockColors();
 	}
