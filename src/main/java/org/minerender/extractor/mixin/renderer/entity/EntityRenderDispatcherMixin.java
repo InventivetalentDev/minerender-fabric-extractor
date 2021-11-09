@@ -2,6 +2,7 @@ package org.minerender.extractor.mixin.renderer.entity;
 
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.entity.EntityType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -13,5 +14,11 @@ public interface EntityRenderDispatcherMixin {
 
     @Accessor("renderers")
     Map<EntityType<?>, EntityRenderer<?>> getRenderers();
+
+    @Accessor("modelRenderers")
+    Map<String, PlayerEntityRenderer> getModelRenderers();
+
+    @Accessor("playerRenderer")
+    PlayerEntityRenderer getPlayerRenderer();
 
 }

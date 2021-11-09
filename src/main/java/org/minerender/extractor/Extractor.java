@@ -13,6 +13,7 @@ import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.entity.EntityType;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -154,6 +155,29 @@ public class Extractor {
         });
 
         Output.write("entityModels");
+    }
+
+    public static void extractPlayerModels() {
+        System.out.println("Extracting models...");
+
+        Map<String, PlayerEntityRenderer> renderers = ((EntityRenderDispatcherMixin) MinecraftClient.getInstance().getEntityRenderDispatcher()).getModelRenderers();
+        System.out.println(renderers);
+        renderers.forEach((type, renderer) -> {
+            JsonObject parts = new JsonObject();
+
+            extractAllModelsFromClass(renderer, parts);
+
+            Output.append("playerModels", type, parts);
+        });
+
+        // This is the same as the "default" entry in the above map
+//        //TODO: doesn't exist in 1.18+
+//        PlayerEntityRenderer renderer = ((EntityRenderDispatcherMixin) MinecraftClient.getInstance().getEntityRenderDispatcher()).getPlayerRenderer();
+//        JsonObject parts = new JsonObject();
+//        extractAllModelsFromClass(renderer, parts);
+//        Output.append("playerModels", "player", parts);
+
+        Output.write("playerModels");
     }
 
     protected static JsonObject extractModelPart(ModelPart modelPart) {

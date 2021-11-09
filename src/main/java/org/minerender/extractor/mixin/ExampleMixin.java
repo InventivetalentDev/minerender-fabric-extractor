@@ -18,6 +18,7 @@ public class ExampleMixin {
 
 		Extractor.extractBlockEntityModels();
 		Extractor.extractEntityModels();
+		Extractor.extractPlayerModels();
 
 		Extractor.extractParticles();
 		Extractor.extractBlockColors();
