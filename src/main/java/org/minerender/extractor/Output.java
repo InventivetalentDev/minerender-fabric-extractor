@@ -1,6 +1,9 @@
 package org.minerender.extractor;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,7 +42,7 @@ public class Output {
 
     public static void write(String name, JsonElement json) {
         try {
-            File file = new File(name + ".json");
+            File file = new File("../extracted/" + name + ".json");
             file.createNewFile();
 
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
@@ -52,6 +55,9 @@ public class Output {
 
     public static JsonObject append(String name, String key, JsonElement value) {
         JsonObject obj = BUFFER.computeIfAbsent(name, k -> new JsonObject());
+        if (obj.has(key)) {
+            System.err.println("Duplicate key " + key + " in " + name);
+        }
         obj.add(key, value);
         return obj;
     }
